@@ -1,10 +1,12 @@
 param location string = resourceGroup().location
-param appName string = 'ragagent${uniqueString(resourceGroup().id)}'
+param uniqueSuffix string = uniqueString(resourceGroup().id)
+param appName string = 'ragagent${uniqueSuffix}'
 
-// Storage Account for the Blob Library and Queue
+// Storage Account name must be lowercase alphanumeric, 3-24 chars
+var storageName = 'strg${take(uniqueSuffix, 19)}'
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
-  // Ensure the name is strictly alphanumeric and under 24 characters safely
-  name: toLower(take(replace(appName, '-', ''), 24))
+  name: storageName
   location: location
   sku: {
     name: 'Standard_LRS'
@@ -17,7 +19,6 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01'
   name: 'default'
 }
 
-// This acts as your mocked SharePoint library
 resource documentsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = {
   parent: blobService
   name: 'documents'
@@ -28,7 +29,7 @@ resource documentsContainer 'Microsoft.Storage/storageAccounts/blobServices/cont
 
 // Azure AI Search (Basic Tier)
 resource searchService 'Microsoft.Search/searchServices@2022-09-01' = {
-  name: '${appName}-search'
+  name: 'search-${uniqueSuffix}'
   location: location
   sku: {
     name: 'basic'
@@ -41,7 +42,7 @@ resource searchService 'Microsoft.Search/searchServices@2022-09-01' = {
 
 // App Service Plan (Consumption - Serverless)
 resource hostingPlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-  name: '${appName}-plan'
+  name: 'plan-${uniqueSuffix}'
   location: location
   sku: {
     name: 'Y1'

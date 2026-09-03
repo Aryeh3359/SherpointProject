@@ -39,6 +39,7 @@ jobs:
         with:
           resourceGroupName: ${{ env.RESOURCE_GROUP }}
           template: ./infra/main.bicep
+          parameters: location=westeurope
           deploymentName: 'bicep-deployment-${{ github.run_number }}'
 
       - name: Deploy to Azure Functions
