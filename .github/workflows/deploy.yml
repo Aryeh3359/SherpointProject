@@ -8,6 +8,7 @@ on:
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
   PYTHON_VERSION: '3.11'
+  RESOURCE_GROUP: 'rg-sherpoint-rag'
 
 jobs:
   build-and-deploy:
@@ -33,9 +34,15 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Deploy Bicep Infrastructure
+        uses: azure/arm-deploy@v1
+        with:
+          resourceGroupName: ${{ env.RESOURCE_GROUP }}
+          template: ./infra/main.bicep
+          deploymentName: 'bicep-deployment-${{ github.run_number }}'
+
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: 'ragagent-func'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          runtime: 'python'
