@@ -1,4 +1,4 @@
-name: Deploy Azure Functions Backend
+name: CI Infrastructure Validation & App Build
 
 on:
   push:
@@ -6,15 +6,14 @@ on:
       - main
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
   PYTHON_VERSION: '3.11'
   RESOURCE_GROUP: 'rg-sherpoint-rag'
 
 jobs:
-  build-and-deploy:
+  build-and-validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout GitHub Action
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -22,7 +21,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Initialize and build project
+      - name: Install Dependencies
         shell: bash
         run: |
           python -m venv .venv
@@ -34,17 +33,10 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Bicep Infrastructure
-        id: bicep_deploy
-        uses: azure/arm-deploy@v1
-        with:
-          resourceGroupName: ${{ env.RESOURCE_GROUP }}
-          template: ./infra/main.bicep
-          parameters: location=northeurope
-          deploymentName: 'bicep-deployment-${{ github.run_number }}'
-
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ steps.bicep_deploy.outputs.functionAppName }}
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+      - name: Validate Bicep Template (IaC Preflight)
+        shell: bash
+        run: |
+          echo "Validating Bicep syntax and deployment template against Azure..."
+          az deployment group validate \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --template-file ./infra/main.bicep
