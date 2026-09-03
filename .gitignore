@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 bin/
 **/bin/
 !Modules/**
@@ -50,3 +51,11 @@ __queuestorage__
 __tablestorage__
 __azurite_db*__.json
 AzuriteConfig
+=======
+.env
+venv/
+__pycache__/
+local.settings.json
+.vscode/
+*.zip
+>>>>>>> 59d401e34f858b88fd58e4b918586fcd1e59006c
