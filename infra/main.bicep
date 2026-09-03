@@ -3,7 +3,8 @@ param appName string = 'ragagent${uniqueString(resourceGroup().id)}'
 
 // Storage Account for the Blob Library and Queue
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
-  name: substring(replace(appName, '-', ''), 0, 24)
+  // Ensure the name is strictly alphanumeric and under 24 characters safely
+  name: toLower(take(replace(appName, '-', ''), 24))
   location: location
   sku: {
     name: 'Standard_LRS'
@@ -53,7 +54,7 @@ resource hostingPlan 'Microsoft.Web/serverfarms@2022-03-01' = {
 
 // Function App (Python Backend)
 resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
-  name: '${appName}-func'
+  name: 'ragagent-func'
   location: location
   kind: 'functionapp,linux'
   properties: {
