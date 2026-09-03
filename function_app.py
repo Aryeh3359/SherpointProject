@@ -37,6 +37,10 @@ def index_document(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
+        global LOCAL_DOCUMENT_INDEX
+        # Remove existing chunks for this doc_id if updating
+        LOCAL_DOCUMENT_INDEX = [chunk for chunk in LOCAL_DOCUMENT_INDEX if chunk["doc_id"] != doc_id]
+
         chunks = chunk_text(content)
         indexed_chunks = []
         for idx, chunk in enumerate(chunks):
@@ -51,10 +55,51 @@ def index_document(req: func.HttpRequest) -> func.HttpResponse:
 
         return func.HttpResponse(
             json.dumps({
-                "message": "Document indexed successfully.",
+                "message": "Document indexed/updated successfully.",
                 "doc_id": doc_id,
                 "chunks_count": len(chunks),
                 "chunk_ids": indexed_chunks
+            }),
+            status_code=200,
+            mimetype="application/json"
+        )
+    except Exception as e:
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json"
+        )
+
+@app.route(route="delete_document", methods=["POST"])
+def delete_document(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Processing delete_document request.")
+    try:
+        req_body = req.get_json()
+        doc_id = req_body.get("doc_id")
+
+        if not doc_id:
+            return func.HttpResponse(
+                json.dumps({"error": "Field 'doc_id' is required for deletion."}),
+                status_code=400,
+                mimetype="application/json"
+            )
+
+        global LOCAL_DOCUMENT_INDEX
+        initial_count = len(LOCAL_DOCUMENT_INDEX)
+        LOCAL_DOCUMENT_INDEX = [chunk for chunk in LOCAL_DOCUMENT_INDEX if chunk["doc_id"] != doc_id]
+        deleted_count = initial_count - len(LOCAL_DOCUMENT_INDEX)
+
+        if deleted_count == 0:
+            return func.HttpResponse(
+                json.dumps({"message": f"No document found with doc_id '{doc_id}'."}),
+                status_code=404,
+                mimetype="application/json"
+            )
+
+        return func.HttpResponse(
+            json.dumps({
+                "message": f"Document '{doc_id}' and its chunks purged successfully.",
+                "chunks_removed": deleted_count
             }),
             status_code=200,
             mimetype="application/json"
