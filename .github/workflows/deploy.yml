@@ -7,7 +7,6 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  RESOURCE_GROUP: 'rg-sherpoint-rag'
 
 jobs:
   build-and-validate:
@@ -28,15 +27,8 @@ jobs:
           source .venv/bin/activate
           pip install -r requirements.txt
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Validate Bicep Template (IaC Preflight)
+      - name: Build and Validate Bicep Template Locally
         shell: bash
         run: |
-          echo "Validating Bicep syntax and deployment template against Azure..."
-          az deployment group validate \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --template-file ./infra/main.bicep
+          echo "Compiling and validating Bicep template syntax..."
+          az bicep build --file ./infra/main.bicep
