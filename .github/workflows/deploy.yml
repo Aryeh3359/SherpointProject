@@ -6,8 +6,8 @@ on:
       - main
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # Set this to the path to your functions project root
-  PYTHON_VERSION: '3.11' # Set this to the Python version to use
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
+  PYTHON_VERSION: '3.11'
 
 jobs:
   build-and-deploy:
@@ -36,6 +36,6 @@ jobs:
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
-          app-name: 'ragagent-func' # Replace with your function app name from Bicep output
+          app-name: 'ragagent-func'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           runtime: 'python'
