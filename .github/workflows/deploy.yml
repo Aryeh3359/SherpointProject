@@ -35,15 +35,16 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy Bicep Infrastructure
+        id: bicep_deploy
         uses: azure/arm-deploy@v1
         with:
           resourceGroupName: ${{ env.RESOURCE_GROUP }}
           template: ./infra/main.bicep
-          parameters: location=westeurope
+          parameters: location=northeurope
           deploymentName: 'bicep-deployment-${{ github.run_number }}'
 
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
-          app-name: 'ragagent-func'
+          app-name: ${{ steps.bicep_deploy.outputs.functionAppName }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}

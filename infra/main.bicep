@@ -1,9 +1,9 @@
 param location string = resourceGroup().location
 param uniqueSuffix string = uniqueString(resourceGroup().id)
-param appName string = 'ragagent${uniqueSuffix}'
 
 // Storage Account name must be lowercase alphanumeric, 3-24 chars
 var storageName = 'strg${take(uniqueSuffix, 19)}'
+var functionAppName = 'ragfunc-${uniqueSuffix}'
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: storageName
@@ -55,7 +55,7 @@ resource hostingPlan 'Microsoft.Web/serverfarms@2022-03-01' = {
 
 // Function App (Python Backend)
 resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
-  name: 'ragagent-func'
+  name: functionAppName
   location: location
   kind: 'functionapp,linux'
   properties: {
@@ -79,3 +79,5 @@ resource functionApp 'Microsoft.Web/sites@2022-03-01' = {
     }
   }
 }
+
+output functionAppName string = functionApp.name
